@@ -83,12 +83,10 @@ public class SimpleUninstaller extends ListActivity {
 	}
 
 	private ArrayList<App> getApps() {
-		ApplicationInfo appInfo;
 		ArrayList<App> appsList = new ArrayList<App>();
 		PackageManager pm = getPackageManager();
 		List<ApplicationInfo> appsInstalled = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-		for (int i = 0; i < appsInstalled.size(); i++) {
-			appInfo = appsInstalled.get(i);
+		for (ApplicationInfo appInfo : appsInstalled) {
 			if (!isSystemPackage(appInfo)) {
 				App app = new App();
 				app.appIcon = appInfo.loadIcon(pm);
