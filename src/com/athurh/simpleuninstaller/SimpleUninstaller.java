@@ -37,6 +37,7 @@ public class SimpleUninstaller extends ListActivity {
         super.onCreate(savedInstanceState);
         mPkgMgr = getPackageManager();
         mListView = getListView();
+        mListView.setDividerHeight(0);
         mListView.setFastScrollEnabled(true);
         setListAdapter(new AppAdapter(this.getApplication(), R.layout.activity_main, getApps()));
     }
@@ -61,6 +62,7 @@ public class SimpleUninstaller extends ListActivity {
     private static final class AppHolder {
         private ImageView appIcon;
         private TextView appName;
+        private TextView appVersion;
         private String appIntName;
     }
 
@@ -83,6 +85,7 @@ public class SimpleUninstaller extends ListActivity {
                 holder = new AppHolder();
                 holder.appIcon = (ImageView) view.findViewById(R.id.appIcon);
                 holder.appName = (TextView) view.findViewById(R.id.appName);
+                holder.appVersion = (TextView) view.findViewById(R.id.appVersion);
                 view.setTag(holder);
             } else {
                 holder = (AppHolder) view.getTag();
@@ -90,6 +93,7 @@ public class SimpleUninstaller extends ListActivity {
             if (app != null) {
                 holder.appIntName = app.appIntName;
                 holder.appName.setText(app.appName);
+                new GetVersion().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, holder);
                 new GetIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, holder);
             }
             return view;
@@ -117,6 +121,30 @@ public class SimpleUninstaller extends ListActivity {
         }
         Collections.sort(appsList, new AppNameComparator());
         return appsList;
+    }
+
+    private class GetVersion extends AsyncTask<AppHolder, Void, CharSequence> {
+        private AppHolder appHolder;
+
+        @Override
+        protected CharSequence doInBackground(AppHolder... params) {
+            appHolder = params[0];
+            CharSequence version;
+
+            try {
+                version = mPkgMgr.getPackageInfo(appHolder.appIntName, 0).versionName;
+            } catch (NameNotFoundException e) {
+                version = "unknown";
+                Log.w(TAG, "version not found " + e);
+            }
+            return version;
+        }
+
+        @Override
+        protected void onPostExecute(CharSequence result) {
+            super.onPostExecute(result);
+            appHolder.appVersion.setText(result);
+        }
     }
 
     private class GetIcon extends AsyncTask<AppHolder, Void, Bitmap> {
