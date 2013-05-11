@@ -23,11 +23,16 @@ import android.graphics.drawable.Drawable;
 
 public class SimpleUninstaller extends ListActivity {
 
+    private PackageManager mPkgMgr;
+    private ListView mListView;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getListView().setFastScrollEnabled(true);
-        setListAdapter(new AppAdapter(this, R.layout.activity_main, getApps()));
+        mPkgMgr = getPackageManager();
+        mListView = getListView();
+        mListView.setFastScrollEnabled(true);
+        setListAdapter(new AppAdapter(this.getApplication(), R.layout.activity_main, getApps()));
     }
 
     @Override
@@ -39,16 +44,15 @@ public class SimpleUninstaller extends ListActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        ListView listView = getListView();
-        App app = (App) listView.getItemAtPosition(requestCode);
+        App app = (App) mListView.getItemAtPosition(requestCode);
         try {
             getPackageManager().getApplicationInfo(app.appIntName, ApplicationInfo.FLAG_INSTALLED);
         } catch (NameNotFoundException e) {
-            ((AppAdapter) listView.getAdapter()).reloadView();
+            ((AppAdapter) mListView.getAdapter()).reloadView();
         }
     }
 
-    private class App {
+    private static final class App {
         private Drawable appIcon;
         private String appIntName;
         private String appName;
@@ -63,13 +67,13 @@ public class SimpleUninstaller extends ListActivity {
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View view = convertView;
-            if (view == null) {
-                LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                view = vi.inflate(R.layout.activity_main, null);
-            }
+        public View getView(int position, View view, ViewGroup parent) {
             App app = items.get(position);
+
+            if (view == null) {
+                LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                view = li.inflate(R.layout.activity_main, null);
+            }
             ((ImageView) view.findViewById(R.id.appIcon)).setImageDrawable(app.appIcon);
             ((TextView) view.findViewById(R.id.appName)).setText(app.appName);
             return view;
@@ -84,13 +88,14 @@ public class SimpleUninstaller extends ListActivity {
 
     private ArrayList<App> getApps() {
         ArrayList<App> appsList = new ArrayList<App>();
-        PackageManager pm = getPackageManager();
-        List<ApplicationInfo> appsInstalled = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+        List<ApplicationInfo> appsInstalled = mPkgMgr.getInstalledApplications(
+                PackageManager.GET_UNINSTALLED_PACKAGES);
+
         for (ApplicationInfo appInfo : appsInstalled) {
             if (!isSystemPackage(appInfo)) {
                 App app = new App();
-                app.appIcon = appInfo.loadIcon(pm);
-                app.appName = appInfo.loadLabel(pm).toString();
+                app.appIcon = appInfo.loadIcon(mPkgMgr);
+                app.appName = appInfo.loadLabel(mPkgMgr).toString();
                 app.appIntName = appInfo.packageName;
                 appsList.add(app);
             }
