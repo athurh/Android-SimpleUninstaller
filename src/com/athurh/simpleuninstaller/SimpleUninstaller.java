@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,10 +21,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
 public class SimpleUninstaller extends ListActivity {
 
+    private final static String TAG = "SimpleUninstaller";
     private PackageManager mPkgMgr;
     private ListView mListView;
 
@@ -47,7 +54,6 @@ public class SimpleUninstaller extends ListActivity {
     }
 
     private static final class App {
-        private Drawable appIcon;
         private String appIntName;
         private String appName;
     }
@@ -55,6 +61,7 @@ public class SimpleUninstaller extends ListActivity {
     private static final class AppHolder {
         private ImageView appIcon;
         private TextView appName;
+        private String appIntName;
     }
 
     private class AppAdapter extends ArrayAdapter<App> {
@@ -81,8 +88,9 @@ public class SimpleUninstaller extends ListActivity {
                 holder = (AppHolder) view.getTag();
             }
             if (app != null) {
+                holder.appIntName = app.appIntName;
                 holder.appName.setText(app.appName);
-                holder.appIcon.setImageDrawable(app.appIcon);
+                new GetIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, holder);
             }
             return view;
         }
@@ -102,14 +110,37 @@ public class SimpleUninstaller extends ListActivity {
         for (ApplicationInfo appInfo : appsInstalled) {
             if (!isSystemPackage(appInfo)) {
                 App app = new App();
-                app.appIcon = appInfo.loadIcon(mPkgMgr);
-                app.appName = appInfo.loadLabel(mPkgMgr).toString();
                 app.appIntName = appInfo.packageName;
+                app.appName = appInfo.loadLabel(mPkgMgr).toString();
                 appsList.add(app);
             }
         }
         Collections.sort(appsList, new AppNameComparator());
         return appsList;
+    }
+
+    private class GetIcon extends AsyncTask<AppHolder, Void, Bitmap> {
+        private AppHolder appHolder;
+
+        @Override
+        protected Bitmap doInBackground(AppHolder... params) {
+            appHolder = params[0];
+            Drawable icon;
+
+            try {
+                icon = mPkgMgr.getApplicationInfo(appHolder.appIntName, 0).loadIcon(mPkgMgr);
+            } catch (NameNotFoundException e) {
+                icon = getResources().getDrawable(R.drawable.ic_launcher);
+                Log.w(TAG, "icon not found " + e);
+            }
+            return ((BitmapDrawable) icon).getBitmap();
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            super.onPostExecute(result);
+            appHolder.appIcon.setImageBitmap(result);
+        }
     }
 
     private boolean isSystemPackage(ApplicationInfo pkg) {
