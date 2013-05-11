@@ -33,7 +33,7 @@ public class SimpleUninstaller extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		App app = (App) l.getItemAtPosition(position);
-		Uri packageURI = Uri.parse("package:" + app.getAppIntName());
+		Uri packageURI = Uri.parse("package:" + app.appIntName);
 		startActivityForResult(new Intent(Intent.ACTION_DELETE, packageURI), position);
 	}
 
@@ -42,7 +42,7 @@ public class SimpleUninstaller extends ListActivity {
 		ListView listView = getListView();
 		App app = (App) listView.getItemAtPosition(requestCode);
 		try {
-			getPackageManager().getApplicationInfo(app.getAppIntName(), ApplicationInfo.FLAG_INSTALLED);
+			getPackageManager().getApplicationInfo(app.appIntName, ApplicationInfo.FLAG_INSTALLED);
 		} catch (NameNotFoundException e) {
 			((AppAdapter) listView.getAdapter()).reloadView();
 		}
@@ -52,30 +52,6 @@ public class SimpleUninstaller extends ListActivity {
 		private Drawable appIcon;
 		private String appIntName;
 		private String appName;
-
-		private Drawable getAppIcon() {
-			return appIcon;
-		}
-
-		private void setAppIcon(Drawable appIconImage) {
-			appIcon = appIconImage;
-		}
-
-		private String getAppIntName() {
-			return appIntName;
-		}
-
-		private void setAppIntName(String appIntNameText) {
-			appIntName = appIntNameText;
-		}
-
-		private String getAppName() {
-			return appName;
-		}
-
-		private void setAppName(String appNameText) {
-			appName = appNameText;
-		}
 	}
 
 	private class AppAdapter extends ArrayAdapter<App> {
@@ -94,8 +70,8 @@ public class SimpleUninstaller extends ListActivity {
 				view = vi.inflate(R.layout.activity_main, null);
 			}
 			App app = items.get(position);
-			((ImageView) view.findViewById(R.id.appIcon)).setImageDrawable(app.getAppIcon());
-			((TextView) view.findViewById(R.id.appName)).setText(app.getAppName());
+			((ImageView) view.findViewById(R.id.appIcon)).setImageDrawable(app.appIcon);
+			((TextView) view.findViewById(R.id.appName)).setText(app.appName);
 			return view;
 		}
 
@@ -115,9 +91,9 @@ public class SimpleUninstaller extends ListActivity {
 			appInfo = appsInstalled.get(i);
 			if (!isSystemPackage(appInfo)) {
 				App app = new App();
-				app.setAppIcon(appInfo.loadIcon(pm));
-				app.setAppName(appInfo.loadLabel(pm).toString());
-				app.setAppIntName(appInfo.packageName);
+				app.appIcon = appInfo.loadIcon(pm);
+				app.appName = appInfo.loadLabel(pm).toString();
+				app.appIntName = appInfo.packageName;
 				appsList.add(app);
 			}
 		}
@@ -131,7 +107,7 @@ public class SimpleUninstaller extends ListActivity {
 
 	private class AppNameComparator implements Comparator<App> {
 		public int compare(App left, App right) {
-			return left.getAppName().compareToIgnoreCase(right.getAppName());
+			return left.appName.compareToIgnoreCase(right.appName);
 		}
 	}
 
