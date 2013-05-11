@@ -52,6 +52,11 @@ public class SimpleUninstaller extends ListActivity {
         private String appName;
     }
 
+    private static final class AppHolder {
+        private ImageView appIcon;
+        private TextView appName;
+    }
+
     private class AppAdapter extends ArrayAdapter<App> {
         public ArrayList<App> items;
 
@@ -63,13 +68,22 @@ public class SimpleUninstaller extends ListActivity {
         @Override
         public View getView(int position, View view, ViewGroup parent) {
             App app = items.get(position);
+            AppHolder holder;
 
             if (view == null) {
                 LayoutInflater li = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 view = li.inflate(R.layout.activity_main, null);
+                holder = new AppHolder();
+                holder.appIcon = (ImageView) view.findViewById(R.id.appIcon);
+                holder.appName = (TextView) view.findViewById(R.id.appName);
+                view.setTag(holder);
+            } else {
+                holder = (AppHolder) view.getTag();
             }
-            ((ImageView) view.findViewById(R.id.appIcon)).setImageDrawable(app.appIcon);
-            ((TextView) view.findViewById(R.id.appName)).setText(app.appName);
+            if (app != null) {
+                holder.appName.setText(app.appName);
+                holder.appIcon.setImageDrawable(app.appIcon);
+            }
             return view;
         }
 
