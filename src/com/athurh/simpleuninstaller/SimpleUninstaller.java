@@ -18,7 +18,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.drawable.Drawable;
 
 public class SimpleUninstaller extends ListActivity {
@@ -44,12 +43,7 @@ public class SimpleUninstaller extends ListActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        App app = (App) mListView.getItemAtPosition(requestCode);
-        try {
-            getPackageManager().getApplicationInfo(app.appIntName, ApplicationInfo.FLAG_INSTALLED);
-        } catch (NameNotFoundException e) {
-            ((AppAdapter) mListView.getAdapter()).reloadView();
-        }
+        ((AppAdapter) mListView.getAdapter()).reloadView();
     }
 
     private static final class App {
