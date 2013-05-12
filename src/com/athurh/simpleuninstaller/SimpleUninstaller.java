@@ -110,8 +110,8 @@ public class SimpleUninstaller extends ListActivity {
             if (app != null) {
                 holder.appIntName = app.appIntName;
                 holder.appName.setText(app.appName);
-                new GetVersion().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, holder);
-                new GetIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, holder);
+                new GetVersion().execute(holder);
+                new GetIcon().execute(holder);
             }
             return view;
         }
